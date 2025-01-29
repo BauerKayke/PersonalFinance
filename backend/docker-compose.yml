@@ -1,0 +1,56 @@
+services:
+  app:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: ./.env
+    ports:
+      - "8080:8080"
+#      - "2345:2345"
+    volumes:
+      - .:/go/src/app
+      - ./.env:/go/src/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend-network
+#    command: dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient  # Inicia o Delve
+
+  db:
+    container_name: postgress-db
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: kbmarins
+      POSTGRES_DB: finance
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/initial_migration.sql:/docker-entrypoint-initdb.d/initial_migration.sql
+    networks:
+      - backend-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d finance -h localhost -p 5432 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+#  redis:
+#    container_name: redis
+#    image: redis:6
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

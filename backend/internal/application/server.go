@@ -22,11 +22,6 @@ func NewApp() *App {
 
 	db := config.Init(cfg)
 
-	transactionsRepository := repositories.NewTransactionRepository(db)
-	transactionsService := services.NewTransactionService(transactionsRepository)
-	transactionsHandler := handlers.NewTransactionHandler(transactionsService)
-	transactionRouter := routes.NewTransactionRouter(transactionsHandler)
-
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
@@ -37,15 +32,20 @@ func NewApp() *App {
 	authHandler := handlers.NewAuthHandler(authService)
 	authRouter := routes.NewAuthRouter(authHandler)
 
-	creditCardRepository := repositories.NewCreditCardRepository(db)
+	bankAccountRepository := repositories.NewBankAccountRepository(db, userRepository)
+	bankAccountService := services.NewBankAccountService(bankAccountRepository)
+	bankAccountHandler := handlers.NewBankAccountHandler(bankAccountService)
+	bankAccountRouter := routes.NewBankAccountRouter(bankAccountHandler)
+
+	creditCardRepository := repositories.NewCreditCardRepository(db, userRepository, bankAccountRepository)
 	creditCardService := services.NewCreditCardService(creditCardRepository)
 	creditCardHandler := handlers.NewCreditCardHandler(creditCardService)
 	creditCardRouter := routes.NewCreditCardRouter(creditCardHandler)
 
-	bankAccountRepository := repositories.NewBankAccountRepository(db)
-	bankAccountService := services.NewBankAccountService(bankAccountRepository)
-	bankAccountHandler := handlers.NewBankAccountHandler(bankAccountService)
-	bankAccountRouter := routes.NewBankAccountRouter(bankAccountHandler)
+	transactionsRepository := repositories.NewTransactionRepository(db, userRepository, bankAccountRepository, creditCardRepository)
+	transactionsService := services.NewTransactionService(transactionsRepository)
+	transactionsHandler := handlers.NewTransactionHandler(transactionsService)
+	transactionRouter := routes.NewTransactionRouter(transactionsHandler)
 
 	router := chi.NewRouter()
 
@@ -58,7 +58,7 @@ func NewApp() *App {
 	userRouter.RegisterRoutes(router, authMiddleware)
 	creditCardRouter.RegisterRoutes(router, authMiddleware)
 	transactionRouter.RegisterRoutes(router, authMiddleware)
-	authRouter.RegisterRoutes(router)
+	authRouter.RegisterRoutes(router, authMiddleware)
 
 	// Servidor com o roteador configurado
 	return &App{Server: &http.Server{

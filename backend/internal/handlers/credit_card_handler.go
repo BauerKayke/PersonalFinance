@@ -29,7 +29,8 @@ func NewCreditCardHandler(creditCardService interfaces.CreditCardServices) *Cred
 
 func (cc CreditCardHandler) GetAllCreditCard() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		creditCard, err := cc.CreditCardService.GetAllCreditCards()
+		userId := r.Context().Value("userID").(*uuid.UUID)
+		creditCard, err := cc.CreditCardService.GetAllCreditCards(userId)
 		if err != nil {
 			response.Error(w, http.StatusInternalServerError, ErrCreditCardHandlerInternalServerError.Error())
 			return
@@ -45,13 +46,14 @@ func (cc CreditCardHandler) GetAllCreditCard() http.HandlerFunc {
 func (cc CreditCardHandler) GetCreditCardByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		userID, err := uuid.Parse(id)
+		creditCardId, err := uuid.Parse(id)
 		if err != nil {
 			response.Error(w, http.StatusBadRequest, "Invalid Credit card ID")
 			return
 		}
+		userId := r.Context().Value("userID").(*uuid.UUID)
 
-		creditCard, err := cc.CreditCardService.GetCreditCardByID(userID)
+		creditCard, err := cc.CreditCardService.GetCreditCardByID(&creditCardId, userId)
 		if err != nil {
 			response.Error(w, http.StatusNotFound, ErrCreditCardHandlerNotFound.Error())
 			return

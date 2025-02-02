@@ -18,18 +18,18 @@ func (c CreditCardService) CreateCreditCard(creditCard *models.CreditCard) (*mod
 	return c.Repo.CreateCreditCard(creditCard)
 }
 
-func (c CreditCardService) GetAllCreditCards() ([]*models.CreditCard, error) {
-	return c.Repo.GetAllCreditCards()
+func (c CreditCardService) GetAllCreditCards(userId *uuid.UUID) ([]*models.CreditCard, error) {
+	return c.Repo.GetAllCreditCards(userId)
 }
 
-func (c CreditCardService) GetCreditCardByID(id uuid.UUID) (*models.CreditCard, error) {
-	return c.Repo.GetCreditCardByID(id)
+func (c CreditCardService) GetCreditCardByID(creditCardId, userId *uuid.UUID) (*models.CreditCard, error) {
+	return c.Repo.GetCreditCardByID(creditCardId, userId)
 }
 
-func (c CreditCardService) DeleteCreditCard(id uuid.UUID) error {
-	return c.Repo.DeleteCreditCard(id)
+func (c CreditCardService) DeleteCreditCard(creditCardId uuid.UUID) error {
+	return c.Repo.DeleteCreditCard(creditCardId)
 }
 
-func (c CreditCardService) UpdateCreditCard(id uuid.UUID, creditCard *models.CreditCard) (*models.CreditCard, error) {
-	return c.UpdateCreditCard(id, creditCard)
+func (c CreditCardService) UpdateCreditCard(creditCardId uuid.UUID, creditCard *models.CreditCard) (*models.CreditCard, error) {
+	return c.UpdateCreditCard(creditCardId, creditCard)
 }

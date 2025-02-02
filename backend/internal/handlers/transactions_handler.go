@@ -9,6 +9,7 @@ import (
 	"github.com/bootcamp-go/web/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -29,7 +30,8 @@ func NewTransactionHandler(service interfaces.TransactionServices) *TransactionH
 
 func (h TransactionHandler) GetAllTransactions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		transactions, err := h.TransactionService.GetAllTransactions()
+		userID := r.Context().Value("userID").(*uuid.UUID)
+		transactions, err := h.TransactionService.GetAllTransactions(userID)
 		if err != nil {
 			response.Error(w, http.StatusInternalServerError, ErrTransactionInternalServerError.Error())
 			return
@@ -45,13 +47,14 @@ func (h TransactionHandler) GetAllTransactions() http.HandlerFunc {
 func (h TransactionHandler) GetTransactionByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		userID, err := uuid.Parse(id)
+		transactionID, err := uuid.Parse(id)
 		if err != nil {
 			response.Error(w, http.StatusBadRequest, "Invalid Transaction ID")
 			return
 		}
+		userID := r.Context().Value("userID").(*uuid.UUID)
 
-		transaction, err := h.TransactionService.GetTransactionByID(userID)
+		transaction, err := h.TransactionService.GetTransactionByID(&transactionID, userID)
 		if err != nil {
 			response.Error(w, http.StatusNotFound, ErrTransactionHandlerNotFound.Error())
 			return
@@ -73,9 +76,11 @@ func (h TransactionHandler) CreateTransaction() http.HandlerFunc {
 			response.Error(w, http.StatusBadRequest, "Invalid request payload")
 			return
 		}
+		log.Println("request", request)
 		userId := r.Context().Value("userID").(*uuid.UUID)
 
 		transaction := mappers.ToTransactionModel(request, userId)
+		log.Println("transaction", transaction)
 
 		createdTransaction, err := h.TransactionService.CreateTransaction(&transaction)
 		if err != nil {

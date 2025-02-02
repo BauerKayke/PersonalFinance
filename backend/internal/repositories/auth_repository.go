@@ -31,8 +31,15 @@ func (a AuthRepository) GetUserByEmail(email string) (*models.User, error) {
 }
 
 func (a AuthRepository) SaveSession(session *models.Sessions) (bool, error) {
+	ok, err := a.GetActiveSession(&session.UserID)
+	if err != nil {
+		return false, err
+	}
+	if ok {
+		return false, errors.New("session already active")
+	}
 	query := `INSERT INTO sessions (id, user_id, token, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := a.DB.Exec(query, session.ID, session.UserID, session.Token, session.IsActive, session.CreatedAt, session.UpdatedAt)
+	_, err = a.DB.Exec(query, session.ID, session.UserID, session.Token, session.IsActive, session.CreatedAt, session.UpdatedAt)
 	if err != nil {
 		return false, err
 	}
@@ -40,9 +47,16 @@ func (a AuthRepository) SaveSession(session *models.Sessions) (bool, error) {
 	return true, nil
 }
 
-func (a AuthRepository) DeleteSession(token string) error {
-	query := `DELETE FROM sessions WHERE id = $1`
-	_, err := a.DB.Exec(query, token)
+func (a AuthRepository) DeleteSession(userId *uuid.UUID) error {
+	ok, err := a.GetActiveSession(userId)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("session not found")
+	}
+	query := `DELETE FROM sessions WHERE user_id = $1`
+	_, err = a.DB.Exec(query, userId)
 	if err != nil {
 		return err
 	}
@@ -50,11 +64,11 @@ func (a AuthRepository) DeleteSession(token string) error {
 	return nil
 }
 
-func (a AuthRepository) GetActiveSession(token *uuid.UUID) (bool, error) {
+func (a AuthRepository) GetActiveSession(userId *uuid.UUID) (bool, error) {
 	query := `SELECT id, user_id, token, is_active FROM sessions WHERE user_id = $1`
 	var session models.Sessions
 
-	err := a.DB.QueryRow(query, token).Scan(&session.ID, &session.UserID, &session.Token, &session.IsActive)
+	err := a.DB.QueryRow(query, userId).Scan(&session.ID, &session.UserID, &session.Token, &session.IsActive)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return session.IsActive, nil

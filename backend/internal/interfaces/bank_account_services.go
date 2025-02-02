@@ -7,8 +7,8 @@ import (
 
 type BankAccountServices interface {
 	CreateBankAccount(bankAccount *models.BankAccount) (*models.BankAccount, error)
-	GetAllBankAccounts() ([]*models.BankAccount, error)
-	GetBankAccountByID(id uuid.UUID) (*models.BankAccount, error)
-	DeleteBankAccount(id uuid.UUID) error
-	UpdateBankAccount(id uuid.UUID, bankAccount *models.BankAccount) (*models.BankAccount, error)
+	GetAllBankAccounts(userId *uuid.UUID) ([]*models.BankAccount, error)
+	GetBankAccountByID(bankAccountId, userId *uuid.UUID) (*models.BankAccount, error)
+	DeleteBankAccount(bankAccountId uuid.UUID) error
+	UpdateBankAccount(bankAccountId uuid.UUID, bankAccount *models.BankAccount) (*models.BankAccount, error)
 }

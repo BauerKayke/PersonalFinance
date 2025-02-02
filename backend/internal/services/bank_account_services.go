@@ -18,18 +18,18 @@ func (b BankAccountService) CreateBankAccount(bankAccount *models.BankAccount) (
 	return b.Repo.CreateBankAccount(bankAccount)
 }
 
-func (b BankAccountService) GetAllBankAccounts() ([]*models.BankAccount, error) {
-	return b.Repo.GetAllBankAccounts()
+func (b BankAccountService) GetAllBankAccounts(userId *uuid.UUID) ([]*models.BankAccount, error) {
+	return b.Repo.GetAllBankAccounts(userId)
 }
 
-func (b BankAccountService) GetBankAccountByID(id uuid.UUID) (*models.BankAccount, error) {
-	return b.Repo.GetBankAccountByID(id)
+func (b BankAccountService) GetBankAccountByID(bankAccountId, userId *uuid.UUID) (*models.BankAccount, error) {
+	return b.Repo.GetBankAccountByID(bankAccountId, userId)
 }
 
-func (b BankAccountService) DeleteBankAccount(id uuid.UUID) error {
-	return b.Repo.DeleteBankAccount(id)
+func (b BankAccountService) DeleteBankAccount(bankAccountId uuid.UUID) error {
+	return b.Repo.DeleteBankAccount(bankAccountId)
 }
 
-func (b BankAccountService) UpdateBankAccount(id uuid.UUID, bankAccount *models.BankAccount) (*models.BankAccount, error) {
-	return b.Repo.UpdateBankAccount(id, bankAccount)
+func (b BankAccountService) UpdateBankAccount(bankAccountId uuid.UUID, bankAccount *models.BankAccount) (*models.BankAccount, error) {
+	return b.Repo.UpdateBankAccount(bankAccountId, bankAccount)
 }

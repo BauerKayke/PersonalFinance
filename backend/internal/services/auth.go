@@ -22,8 +22,8 @@ func (u AuthService) SaveSession(session *models.Sessions) (bool, error) {
 	return u.Repo.SaveSession(session)
 }
 
-func (u AuthService) DeleteSession(token string) error {
-	return u.Repo.DeleteSession(token)
+func (u AuthService) DeleteSession(userId *uuid.UUID) error {
+	return u.Repo.DeleteSession(userId)
 }
 
 func (u AuthService) GetActiveSession(userId *uuid.UUID) (bool, error) {

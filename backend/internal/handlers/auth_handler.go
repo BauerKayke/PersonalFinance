@@ -4,10 +4,10 @@ import (
 	"backend/internal/interfaces"
 	"backend/internal/models"
 	"backend/pkg/jwt"
+	"fmt"
 	"github.com/bootcamp-go/web/response"
 	"github.com/google/uuid"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -64,29 +64,16 @@ func (a *AuthHandler) LoginUser() http.HandlerFunc {
 	}
 }
 
-// LogoutHandler remove a sessão do Redis e adiciona à blacklist
 func (a *AuthHandler) LogoutUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenHeader := r.Header.Get("Authorization")
-		if tokenHeader == "" {
-			response.Error(w, http.StatusUnauthorized, "Token is missing")
+		userId := r.Context().Value("userID").(*uuid.UUID)
+		fmt.Println("userID", userId)
+		cookie, err := r.Cookie("token")
+		if err != nil || cookie.Value == "" {
+			response.Error(w, http.StatusUnauthorized, "Unauthorized: Token is missing")
 			return
 		}
-
-		parts := strings.Split(tokenHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Error(w, http.StatusUnauthorized, "Invalid token format")
-			return
-		}
-
-		token := parts[1]
-		_, err := jwt.ValidateJWT(token)
-		if err != nil {
-			response.Error(w, http.StatusUnauthorized, "Unauthorized: "+err.Error())
-			return
-		}
-
-		if err := a.AuthServices.DeleteSession(token); err != nil {
+		if err := a.AuthServices.DeleteSession(userId); err != nil {
 			response.Error(w, http.StatusInternalServerError, "Failed to delete session")
 			return
 		}

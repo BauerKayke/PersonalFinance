@@ -19,13 +19,21 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (u UserRepository) CreateUser(user *models.User) (*models.User, error) {
+	existingUser, err := u.GetUserByEmail(user.Email)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, errors.New("email already in use")
+	}
+
 	query := `INSERT INTO users (id, name, email, password, created_at, updated_at) 
 			  VALUES ($1, $2, $3, $4, $5, $6)`
 	user.ID = uuid.New()
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	_, err := u.DB.Exec(query, user.ID, user.Name, user.Email, user.Password, user.CreatedAt, user.UpdatedAt)
+	_, err = u.DB.Exec(query, user.ID, user.Name, user.Email, user.Password, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +97,13 @@ func (u UserRepository) GetUserByID(id uuid.UUID) (*models.User, error) {
 }
 
 func (u UserRepository) DeleteUser(id uuid.UUID) error {
+	exists, err := u.UserExists(id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.New("user does not exist")
+	}
 	query := `DELETE FROM users WHERE id = $1`
 	result, err := u.DB.Exec(query, id)
 	if err != nil {
@@ -108,6 +123,13 @@ func (u UserRepository) DeleteUser(id uuid.UUID) error {
 }
 
 func (u UserRepository) UpdateUser(id uuid.UUID, user *models.User) (*models.User, error) {
+	exists, err := u.UserExists(id)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("user does not exist")
+	}
 	query := `UPDATE users SET name = $1, email = $2, password = $3, updated_at = $4 WHERE id = $5`
 	user.UpdatedAt = time.Now()
 
@@ -126,4 +148,14 @@ func (u UserRepository) UpdateUser(id uuid.UUID, user *models.User) (*models.Use
 	}
 
 	return user, nil
+}
+
+func (u UserRepository) UserExists(id uuid.UUID) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
+	var exists bool
+	err := u.DB.QueryRow(query, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }

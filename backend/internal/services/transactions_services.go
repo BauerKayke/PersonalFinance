@@ -18,12 +18,12 @@ func (t TransactionService) CreateTransaction(transaction *models.Transaction) (
 	return t.Repo.CreateTransaction(transaction)
 }
 
-func (t TransactionService) GetAllTransactions() ([]*models.Transaction, error) {
-	return t.Repo.GetAllTransactions()
+func (t TransactionService) GetAllTransactions(userID *uuid.UUID) ([]*models.Transaction, error) {
+	return t.Repo.GetAllTransactions(userID)
 }
 
-func (t TransactionService) GetTransactionByID(id uuid.UUID) (*models.Transaction, error) {
-	return t.Repo.GetTransactionByID(id)
+func (t TransactionService) GetTransactionByID(transactionID, userID *uuid.UUID) (*models.Transaction, error) {
+	return t.Repo.GetTransactionByID(transactionID, userID)
 }
 
 func (t TransactionService) DeleteTransaction(id uuid.UUID) error {

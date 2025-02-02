@@ -31,7 +31,8 @@ func NewBankAccountHandler(bankAccountService interfaces.BankAccountServices) *B
 
 func (bk BankAccountHandler) GetAllBankAccount() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		bankAccount, err := bk.BankAccountService.GetAllBankAccounts()
+		userId := r.Context().Value("userID").(*uuid.UUID)
+		bankAccount, err := bk.BankAccountService.GetAllBankAccounts(userId)
 		if err != nil {
 			response.Error(w, http.StatusInternalServerError, ErrBankAccountHandlerInternalServerError.Error())
 			return
@@ -47,13 +48,14 @@ func (bk BankAccountHandler) GetAllBankAccount() http.HandlerFunc {
 func (bk BankAccountHandler) GetBankAccountByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		userID, err := uuid.Parse(id)
+		bankAccountId, err := uuid.Parse(id)
 		if err != nil {
 			response.Error(w, http.StatusBadRequest, "Invalid Bank account ID")
 			return
 		}
+		userId := r.Context().Value("userID").(*uuid.UUID)
 
-		bankAccount, err := bk.BankAccountService.GetBankAccountByID(userID)
+		bankAccount, err := bk.BankAccountService.GetBankAccountByID(&bankAccountId, userId)
 		if err != nil {
 			response.Error(w, http.StatusNotFound, ErrBankAccountHandlerNotFound.Error())
 			return

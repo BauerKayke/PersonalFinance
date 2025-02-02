@@ -2,6 +2,7 @@ package routes
 
 import (
 	"backend/internal/handlers"
+	"backend/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -16,8 +17,8 @@ func NewAuthRouter(handler *handlers.AuthHandler) *AuthRouter {
 }
 
 // RegisterRoutes registra as rotas de autenticação
-func (a *AuthRouter) RegisterRoutes(router chi.Router) {
+func (a *AuthRouter) RegisterRoutes(router chi.Router, authMiddleware *middleware.AuthMiddlewareHandler) {
 	// Rota de login (gera o token JWT)
 	router.Post("/login", a.AuthHandler.LoginUser())
-	router.Post("/logout", a.AuthHandler.LogoutUser())
+	router.With(authMiddleware.AuthMiddleware).Post("/logout", a.AuthHandler.LogoutUser())
 }

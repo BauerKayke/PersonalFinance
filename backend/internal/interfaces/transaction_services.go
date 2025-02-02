@@ -7,8 +7,8 @@ import (
 
 type TransactionServices interface {
 	CreateTransaction(transaction *models.Transaction) (*models.Transaction, error)
-	GetAllTransactions() ([]*models.Transaction, error)
-	GetTransactionByID(id uuid.UUID) (*models.Transaction, error)
-	DeleteTransaction(id uuid.UUID) error
-	UpdateTransaction(id uuid.UUID, transaction *models.Transaction) (*models.Transaction, error)
+	GetAllTransactions(userID *uuid.UUID) ([]*models.Transaction, error)
+	GetTransactionByID(transactionID, userID *uuid.UUID) (*models.Transaction, error)
+	DeleteTransaction(transactionID uuid.UUID) error
+	UpdateTransaction(transactionID uuid.UUID, transaction *models.Transaction) (*models.Transaction, error)
 }
